@@ -1,0 +1,24 @@
+abstract: |
+  A plugin for the Aeruginous Open Source Development Toolbox to interact with
+  TAR.BR files.
+authors:
+  - alias: kevinmatthes
+    family-names: Matthes
+    given-names: Kevin
+cff-version: 1.2.0
+date-released: 2024-02-15
+keywords:
+  - Rust
+  - aeruginous
+  - algorithms
+  - brotli
+  - compression
+  - filesystem
+  - tar
+  - tbr
+license: GPL-3.0
+message: Please cite this project using these information.
+repository-code: https://github.com/kevinmatthes/aeruginous-tbr
+title: aeruginous-tbr
+url: https://github.com/kevinmatthes/aeruginous-tbr
+version: 0.1.0

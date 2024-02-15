@@ -1,0 +1,25 @@
+(
+  references: {},
+  changes: {
+    "Added": [
+      ".clippy.toml",
+      ".gitattributes",
+      ".github/CODEOWNERS",
+      ".github/aeruginous-tbr.cff",
+      ".github/release.yml",
+      ".github/workflows/cff.yml",
+      ".github/workflows/ci.yml",
+      ".github/workflows/mirror.yml",
+      ".github/workflows/pr.yml",
+      ".github/workflows/rustfmt.yml",
+      ".gitignore",
+      ".rustfmt.toml",
+      "CITATION.cff",
+      "Cargo.lock",
+      "Cargo.toml",
+      "src/lib.rs",
+      "src/tar_archive.rs",
+      "tests/tar_archive.rs",
+    ],
+  },
+)

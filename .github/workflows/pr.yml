@@ -1,0 +1,99 @@
+######################## GNU General Public License 3.0 ########################
+##                                                                            ##
+## Copyright (C) 2024 Kevin Matthes                                           ##
+##                                                                            ##
+## This program is free software: you can redistribute it and/or modify       ##
+## it under the terms of the GNU General Public License as published by       ##
+## the Free Software Foundation, either version 3 of the License, or          ##
+## (at your option) any later version.                                        ##
+##                                                                            ##
+## This program is distributed in the hope that it will be useful,            ##
+## but WITHOUT ANY WARRANTY; without even the implied warranty of             ##
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              ##
+## GNU General Public License for more details.                               ##
+##                                                                            ##
+## You should have received a copy of the GNU General Public License          ##
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.     ##
+##                                                                            ##
+################################################################################
+
+################################################################################
+##
+##  AUTHOR      Kevin Matthes
+##  BRIEF       Pull Request-related automations.
+##  COPYRIGHT   GPL-3.0
+##  DATE        2024
+##  FILE        pr.yml
+##  NOTE        See `LICENSE' for full license.
+##              See `README.md' for project details.
+##
+################################################################################
+
+name: pr
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  code:
+    needs:
+      - mutants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: taiki-e/install-action@v2.26.20
+        with:
+          tool: cargo-llvm-cov
+
+      - uses: actions/setup-python@v5.0.0
+        with:
+          python-version: 3.11
+
+      - uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.head_ref }}
+
+      - run: echo pycobertura >> requirements.txt
+      - uses: py-actions/py-dependency-install@v4.1.0
+
+      - run: |
+          rustup update
+          cargo llvm-cov --cobertura --output-path cobertura.xml
+          {
+            echo '```' ;
+            pycobertura show cobertura.xml ;
+            echo '```' ;
+          } >> code-coverage.md
+
+      - uses: thollander/actions-comment-pull-request@v2.4.3
+        with:
+          comment_tag: code-coverage
+          filePath: code-coverage.md
+
+  coverage:
+    needs:
+      - code
+      - mutants
+    runs-on: ubuntu-latest
+    steps:
+      - run: bash -c 'exit 0'
+
+  mutants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.head_ref }}
+
+      - run: |
+          rustup update
+          cargo install cargo-mutants
+          cargo mutants
+
+################################################################################

@@ -1,0 +1,84 @@
+######################## GNU General Public License 3.0 ########################
+##                                                                            ##
+## Copyright (C) 2024 Kevin Matthes                                           ##
+##                                                                            ##
+## This program is free software: you can redistribute it and/or modify       ##
+## it under the terms of the GNU General Public License as published by       ##
+## the Free Software Foundation, either version 3 of the License, or          ##
+## (at your option) any later version.                                        ##
+##                                                                            ##
+## This program is distributed in the hope that it will be useful,            ##
+## but WITHOUT ANY WARRANTY; without even the implied warranty of             ##
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              ##
+## GNU General Public License for more details.                               ##
+##                                                                            ##
+## You should have received a copy of the GNU General Public License          ##
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.     ##
+##                                                                            ##
+################################################################################
+
+################################################################################
+##
+##  AUTHOR      Kevin Matthes
+##  BRIEF       Assemble the main CITATION.cff from its updated fragments.
+##  COPYRIGHT   GPL-3.0
+##  DATE        2024
+##  FILE        cff.yml
+##  NOTE        See `LICENSE' for full license.
+##              See `README.md' for project details.
+##
+################################################################################
+
+name: cff
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Cargo.lock
+      - Cargo.toml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  main:
+    if: github.repository == 'kevinmatthes/aeruginous-io'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - run: |
+          rustup update
+          cat .github/aeruginous-io.cff > CITATION.cff
+          echo references: >> CITATION.cff
+
+      - uses: kevinmatthes/aeruginous-rs/curl-cffref@v3.7.7
+        with:
+          branch: main
+          repository: kevinmatthes/aeruginous-io
+
+      - uses: kevinmatthes/aeruginous-rs/curl-cffref@v3.7.7
+        with:
+          branch: develop
+          repository: sorairolake/sysexits-rs
+
+      - uses: kevinmatthes/aeruginous-rs/curl-cffref@v3.7.7
+        with:
+          branch: main
+          repository: sourcefrog/cargo-mutants
+
+      - uses: peter-evans/create-pull-request@v6.0.0
+        with:
+          assignees: |
+            kevinmatthes
+          branch: documentation/cff-update
+          branch-suffix: timestamp
+          labels: documentation
+          milestone: 1
+          title: '[GitHub Actions] Update CITATION.cff'
+
+################################################################################

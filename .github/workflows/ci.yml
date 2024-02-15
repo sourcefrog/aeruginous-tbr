@@ -1,0 +1,124 @@
+######################## GNU General Public License 3.0 ########################
+##                                                                            ##
+## Copyright (C) 2024 Kevin Matthes                                           ##
+##                                                                            ##
+## This program is free software: you can redistribute it and/or modify       ##
+## it under the terms of the GNU General Public License as published by       ##
+## the Free Software Foundation, either version 3 of the License, or          ##
+## (at your option) any later version.                                        ##
+##                                                                            ##
+## This program is distributed in the hope that it will be useful,            ##
+## but WITHOUT ANY WARRANTY; without even the implied warranty of             ##
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              ##
+## GNU General Public License for more details.                               ##
+##                                                                            ##
+## You should have received a copy of the GNU General Public License          ##
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.     ##
+##                                                                            ##
+################################################################################
+
+################################################################################
+##
+##  AUTHOR      Kevin Matthes
+##  BRIEF       The CI of this project.
+##  COPYRIGHT   GPL-3.0
+##  DATE        2024
+##  FILE        ci.yml
+##  NOTE        See `LICENSE' for full license.
+##              See `README.md' for project details.
+##
+################################################################################
+
+name: ci
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          persist-credentials: false
+
+      - uses: docker://rhysd/actionlint:1.6.26
+        with:
+          args: -color
+
+  aeruginous:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          persist-credentials: false
+
+      - run: |
+          rustup update
+          cargo install aeruginous
+          aeruginous complain .github/ src/ tests/
+
+  bors:
+    needs:
+      - actionlint
+      - aeruginous
+      - cargo
+      - cffconvert
+      - renovate-linter
+    runs-on: ubuntu-latest
+    steps:
+      - run: bash -c 'exit 0'
+
+  cargo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          persist-credentials: false
+
+      - run: |
+          rustup update
+          cargo ${{ matrix.cargo }}
+    strategy:
+      matrix:
+        cargo:
+          - b
+          - c
+          - clippy
+          - d
+          - fmt --check
+          - t
+
+  cffconvert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          persist-credentials: false
+
+      - uses: docker://citationcff/cffconvert:2.0.0
+        with:
+          args: --validate -i ${{ matrix.cff }}
+    strategy:
+      matrix:
+        cff:
+          - .github/aeruginous-tbr.cff
+          - CITATION.cff
+
+  renovate-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          persist-credentials: false
+
+      - run: |
+          npx -p renovate \
+              -c 'renovate-config-validator .renovaterc.json5 --strict' \
+              -y
+
+################################################################################
